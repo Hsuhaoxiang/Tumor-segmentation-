@@ -8,7 +8,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score
 from loss import vae_loss
 
-
+real_label = 1
+fake_label = 0
 def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , times = 4 ,start_epoch = 0 ):
     print("available gup number:",torch.cuda.device_count())
     
@@ -29,13 +30,33 @@ def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_pat
                 featuremap,pred= model(feat_cut)#featuremap is input for G
                
                 
-                loss = criterion2(pred.double(),gt_cut).float()
-
-                #loss = vae_loss(pred,feat_cut , mu, var,x,y,z)
-                #loss = criterion(pred_i.double(),feat_i.double())
+                loss = criterion3(pred.double(),gt_cut).float()
                 loss.backward()
                 optimizer.step()
                 n_loss+=loss.item()
+
+                ############################
+                # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
+                ###########################
+                # train with real
+                D.zero_grad()
+                label = [real_label]
+
+                output = netD(feat_cut)
+                errD_real = criterion1(output, label)
+                errD_real.backward()
+                D_x = output.mean().item()
+
+                # train with fake
+                
+                fake = G(featuremap)
+                label = [fake_label]
+                output = D(fake.detach())
+                errD_fake = criterion1(output, label)
+                errD_fake.backward()
+                D_G_z1 = output.mean().item()
+                errD = errD_real + errD_fake
+                optimizerD.step()
 
                 #if i==1 and idx==1:
                  #   print("1 1save")
