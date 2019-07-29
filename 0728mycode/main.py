@@ -20,7 +20,7 @@ from train   import *
 from models  import UNet3d_vae
 from loss    import loss_3d_crossentropy ,F1_Loss
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 train_path = '../vae/brats18_data/train_2/'
@@ -48,9 +48,9 @@ optimizer = torch.optim.Adam(model.parameters(),lr=0.00001,betas=(0.5, 0.999))
 #criterion2 = loss_3d_crossentropy(classes,x,y,z)
 
 
-load_checkpoint('./savecheckpoint3/_epoch49.pth',model,optimizer)
+load_checkpoint('./savecheckpoint3/_epoch76.pth',model,optimizer)
 print('load epoch49')
-train(model,optimizer, train_loader,'./savecheckpoint3/' , x,y,z,n_epochs = 100 , times = 4,start_epoch = 50 )
+train(model,optimizer, train_loader,'./savecheckpoint3/' , x,y,z,n_epochs = 100 , times = 4,start_epoch = 77 )
 
 
 
