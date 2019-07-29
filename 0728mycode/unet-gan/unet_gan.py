@@ -95,9 +95,9 @@ class outconv(nn.Module):
 
 
 
-class Featuremap (nn.Module):
-    def __init__(self, n_channels, n_classes,x1,y,z):
-        super(Featuremap, self).__init__()
+class unet_3d (nn.Module):
+    def __init__(self, n_channels, n_classes,x,y,z):
+        super(unet_3d, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)
@@ -109,7 +109,7 @@ class Featuremap (nn.Module):
         self.flattenlayer = Flatten()
 	
         self.vae = nn.Sequential (
-                    nn.Linear(x1*y*z//2 , 1024),
+                    nn.Linear(x*y*z//2 , 1024),
                     nn.ReLU()
         )
         self._enc_mu = torch.nn.Linear(1024, 128)

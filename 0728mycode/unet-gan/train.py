@@ -9,13 +9,14 @@ from sklearn.metrics import f1_score
 from loss import vae_loss
 
 
-def train(model,optimizer, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , times = 4 ,start_epoch = 0 ):
+def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , times = 4 ,start_epoch = 0 ):
     print("available gup number:",torch.cuda.device_count())
     
     best_loss = np.inf
     model.train()
-    criterion  = nn.MSELoss()
-    criterion2=loss_3d_crossentropy(5,x,y,z)
+    criterion1 = nn.BCELoss()
+    criterion2  = nn.MSELoss()
+    criterion3=loss_3d_crossentropy(5,x,y,z)
     for epoch in range (start_epoch , n_epochs):
         n_loss = 0
         for i ,(feat,gt) in enumerate (dataloader):        
@@ -25,11 +26,11 @@ def train(model,optimizer, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , ti
                 feat_cut = feat_cut.cuda()
                 gt_cut   = gt_cut.cuda()
                 model.zero_grad()
-                rec,pred ,mu,var= model(feat_cut)
-                rec_i=rec.contiguous().view(-1)
-                feat_i= feat_cut.contiguous().view(-1) 
+                featuremap,pred= model(feat_cut)#featuremap is input for G
+               
                 
-                loss =loss = 0.1*criterion(rec_i , feat_i)+criterion2(pred.double(),gt_cut).float()
+                loss = criterion2(pred.double(),gt_cut).float()
+
                 #loss = vae_loss(pred,feat_cut , mu, var,x,y,z)
                 #loss = criterion(pred_i.double(),feat_i.double())
                 loss.backward()
