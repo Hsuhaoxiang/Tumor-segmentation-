@@ -220,17 +220,25 @@ class Discriminator (nn.Moudle):
     def __init__(self):
     super(Discriminator,self).__init__()
     self.model = nn.Sequential(
-
-
-
-
-
+        inconv(n_channels, 64)
+        down(64, 128)
+        down(128, 256)
+        down(256, 256)
+        nn.Linear(256,1)
+        nn.Sigmoid()
     )
+
+    #self.inc = inconv(n_channels, 64)
+    #self.down1 = down(64, 128)
+    #self.down2 = down(128, 256)
+    #self.down3 = down(256, 256)
+        
+    
 
 
 
     def forward(self, img):
-        out = self.model(img)
-        out = out.view(out.shape[0], -1)
-        validity = self.adv_layer(out)
+        validity = self.model(img)
+        return validity
+
 
