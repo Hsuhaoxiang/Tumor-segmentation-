@@ -20,6 +20,8 @@ def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_pat
     criterion3=loss_3d_crossentropy(5,x,y,z)
     for epoch in range (start_epoch , n_epochs):
         n_loss = 0
+        G_loss = 0
+        D_loss = 0
         for i ,(feat,gt) in enumerate (dataloader):        
             # print(feat.shape,gt.shape)
             for idx in range (times):
@@ -55,8 +57,25 @@ def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_pat
                 errD_fake = criterion1(output, label)
                 errD_fake.backward()
                 D_G_z1 = output.mean().item()
+                D_loss+=D_G_z1
                 errD = errD_real + errD_fake
                 optimizerD.step()
+
+                ############################
+                # (1) Update G network: maximize log(D(G(z)))
+                ###########################
+                G.zero_grad()
+                label=[real_label]  # fake labels are real for generator cost
+                output = netD(fake)
+                errG = criterion(output, label)
+                errG.backward()
+                D_G_z2 = output.mean().item()
+                G_loss+=D_G_z1
+                optimizerG.step()
+
+
+
+
 
                 #if i==1 and idx==1:
                  #   print("1 1save")
@@ -65,11 +84,13 @@ def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_pat
                     #torch.save(pred,'pred.pt')
                     #torch.save(gt_cut,'ground_true.pt')
 
-
-                print("[%d/%d],[%d/%d],[%d/%d],loss :%.4f"%(epoch+1,n_epochs,i+1,len(dataloader),idx+1,times,loss.item()),end = "\r")
+                print("[%d/%d],[%d/%d],[%d/%d],D_loss :%.4f G_loss: %.4f D(x): %.4f D(G(z)): %.4f / %.4f   unet_loss :%.4f"
+                %(epoch+1,n_epochs,i+1,len(dataloader),idx+1,times, errD.item(), errG.item(), D_x, D_G_z1, D_G_z2,loss.item()),end = "\r")
+                #print("[%d/%d],[%d/%d],[%d/%d],loss :%.4f"%(epoch+1,n_epochs,i+1,len(dataloader),idx+1,times,loss.item()),end = "\r")
         n_loss/=(len(dataloader)*times)
-        
-        print("[%d/%d],loss : %.4f"%(epoch+1,n_epochs,n_loss))
+        G_loss/=(len(dataloader)*times)
+        D_loss/=(len(dataloader)*times)
+        print("[%d/%d],unet_loss : %.4f  D(G(z))"%(epoch+1,n_epochs,n_loss,D_loss,G_loss))
         # if(n_loss <best_loss):
             # best_loss = n_loss
         save_checkpoint('%s_epoch%d.pth'%(checkpoint_path,epoch+1) ,model ,optimizer )
