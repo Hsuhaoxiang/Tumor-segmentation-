@@ -10,11 +10,12 @@ from loss import vae_loss
 
 real_label = 1
 fake_label = 0
-def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , times = 4 ,start_epoch = 0 ):
+def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , times = 4 ,start_epoch = 0 ):
     print("available gup number:",torch.cuda.device_count())
     
     best_loss = np.inf
-    model.train()
+    G.train()
+    D.train()
     criterion1 = nn.BCELoss()
     criterion2  = nn.MSELoss()
     criterion3=loss_3d_crossentropy(5,x,y,z)
@@ -25,72 +26,103 @@ def train(model,G,D,optimizer,optimizerG ,optimizerD, dataloader, checkpoint_pat
         for i ,(feat,gt) in enumerate (dataloader):        
             # print(feat.shape,gt.shape)
             for idx in range (times):
+
+
+                #data process
                 feat_cut ,gt_cut = cut_feat_gt(feat,gt,x,y,z)                
                 feat_cut = feat_cut.cuda()
                 gt_cut   = gt_cut.cuda()
-                model.zero_grad()
-                featuremap,pred= model(feat_cut)#featuremap is input for G
-               
                 
+
+
+
+                """
+                featuremap,pred= model(feat_cut)#featuremap is input for G            
                 loss = criterion3(pred.double(),gt_cut).float()
                 loss.backward()
                 optimizer.step()
                 n_loss+=loss.item()
-
+                """
+                
                 ############################
                 # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
                 ###########################
                 # train with real
                 D.zero_grad()
-                label = [real_label]
-
-                output = netD(feat_cut)
+                label = torch.full((1,), real_label, device=device)
+                label.cuda()
+                
+                
+                
+                output = D(feat_cut)
                 errD_real = criterion1(output, label)
                 errD_real.backward()
                 D_x = output.mean().item()
 
                 # train with fake
                 
-                fake = G(featuremap)
-                label = [fake_label]
+                fake ,pred= G(feat_cut)
+                label = torch.full((1,), fake_label, device=device)
+                label.cuda()
                 output = D(fake.detach())
                 errD_fake = criterion1(output, label)
                 errD_fake.backward()
                 D_G_z1 = output.mean().item()
-                D_loss+=D_G_z1
+                
                 errD = errD_real + errD_fake
+                D_loss+=errD
                 optimizerD.step()
 
                 ############################
                 # (1) Update G network: maximize log(D(G(z)))
                 ###########################
                 G.zero_grad()
-                label=[real_label]  # fake labels are real for generator cost
-                output = netD(fake)
+                label = torch.full((1,), real_label, device=device)  # fake labels are real for generator cost
+                label.cuda()
+
+
+                
+                output = D(fake)
+
+
+
+
+
+
+
+                           
+                loss = criterion3(pred.double(),gt_cut).float()
+                n_loss+=loss.item()  
+
+
+
                 errG = criterion(output, label)
-                errG.backward()
-                D_G_z2 = output.mean().item()
-                G_loss+=D_G_z1
+                Gnet_loss=errG+loss
+                Gnet_loss.backward()
+                G_loss+=errG
+                D_G_z2 = output.mean().item()                
                 optimizerG.step()
+                ###################################
+                #    Finish update G,D network    #
+                ###################################
 
 
 
-
-
-                #if i==1 and idx==1:
-                 #   print("1 1save")
-                  #  torch.save(rec,'reconstruct.pt')
-                   # torch.save(feat_cut,'feat_cut.pt')
-                    #torch.save(pred,'pred.pt')
-                    #torch.save(gt_cut,'ground_true.pt')
-
+                """
+                if i==1 and idx==1:
+                    print("1 1save")
+                    torch.save(rec,'reconstruct.pt')
+                    torch.save(feat_cut,'feat_cut.pt')
+                    torch.save(pred,'pred.pt')
+                    torch.save(gt_cut,'ground_true.pt')
+                """
                 print("[%d/%d],[%d/%d],[%d/%d],D_loss :%.4f G_loss: %.4f D(x): %.4f D(G(z)): %.4f / %.4f   unet_loss :%.4f"
                 %(epoch+1,n_epochs,i+1,len(dataloader),idx+1,times, errD.item(), errG.item(), D_x, D_G_z1, D_G_z2,loss.item()),end = "\r")
                 #print("[%d/%d],[%d/%d],[%d/%d],loss :%.4f"%(epoch+1,n_epochs,i+1,len(dataloader),idx+1,times,loss.item()),end = "\r")
         n_loss/=(len(dataloader)*times)
         G_loss/=(len(dataloader)*times)
         D_loss/=(len(dataloader)*times)
-        print("[%d/%d],unet_loss : %.4f  D(G(z))"%(epoch+1,n_epochs,n_loss,D_loss,G_loss))
+        print("[%d/%d],unet_loss : %.4f  D_loss :%.4f G_loss: %.4f"%(epoch+1,n_epochs,n_loss,D_loss,G_loss))
         # if(n_loss <best_loss):
             # best_loss = n_loss
         save_checkpoint('%s_epoch%d.pth'%(checkpoint_path,epoch+1) ,model ,optimizer )

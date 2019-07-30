@@ -93,11 +93,9 @@ class outconv(nn.Module):
 
 
 
-
-
-class unet_3d (nn.Module):
+class Generator (nn.Module):
     def __init__(self, n_channels, n_classes,x,y,z):
-        super(unet_3d, self).__init__()
+        super(Generator, self).__init__()
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
         self.down2 = down(128, 256)
@@ -106,20 +104,23 @@ class unet_3d (nn.Module):
         self.up2 = up(256, 64)
         self.up3 = up(128, 64)
         self.outc = outconv(64, n_classes)
+        
         self.flattenlayer = Flatten()
-	
+        """
         self.vae = nn.Sequential (
                     nn.Linear(x*y*z//2 , 1024),
                     nn.ReLU()
         )
         self._enc_mu = torch.nn.Linear(1024, 128)
         self._enc_log_sigma = torch.nn.Linear(1024, 128)
+        """
         self.encoder = nn.Sequential(
                     nn.Linear(128 , 512),
                     nn.ReLU(),
                     nn.Linear(512 , 8*8*8),
                     nn.ReLU()
         )
+
         self.up = nn.Sequential(
                     nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
                     nn.Conv3d(1, 64, 3, padding=1),
@@ -146,8 +147,6 @@ class unet_3d (nn.Module):
                     nn.ReLU(inplace=True),
         )
 
-   
-
     def forward(self, x):
         #encoder
         x1 = self.inc(x)
@@ -168,14 +167,14 @@ class unet_3d (nn.Module):
         #sigma = torch.exp(log_sigma)
         #std_z = torch.from_numpy(np.random.normal(0, 1, size=sigma.size())).float().cuda()
         #z =  mu + sigma * std_z # Reparameterization trick
-        #rec_img = self.encoder(z)
+        rec_img = self.encoder(x4)
         #rec_img = rec_img.view(-1,1,8,8,8)
-        #rec_img = self.up(rec_img)
+        rec_img = self.up(rec_img)
        
-        return x4, x
+        return recimg, x
 
-
-class Genernator (nn.Moudle):
+"""
+class Genernator (nn.Module):
     def __init__(self):
         super(Genernator,self).__init__() 
         self.encoder = nn.Sequential(
@@ -215,30 +214,43 @@ class Genernator (nn.Moudle):
         rec_img = rec_img.view(-1,1,8,8,8)
         rec_img = self.up(rec_img)
         return rec_img
-
-class Discriminator (nn.Moudle):
+"""
+class Discriminator (nn.Module):
     def __init__(self):
-    super(Discriminator,self).__init__()
-    self.model = nn.Sequential(
-        inconv(n_channels, 64)
-        down(64, 128)
-        down(128, 256)
-        down(256, 256)
-        nn.Linear(256,1)
-        nn.Sigmoid()
-    )
-
-    #self.inc = inconv(n_channels, 64)
-    #self.down1 = down(64, 128)
-    #self.down2 = down(128, 256)
-    #self.down3 = down(256, 256)
+        super(Discriminator,self).__init__()
+        #self.model = nn.Sequential(
+         #   inconv(4, 64),
+          #  down(64, 128),
+           # down(128, 256),
+           # down(256, 256),
+           # nn.Linear(256,1),
+           # nn.Sigmoid(),
+        #)
+       
+        self.inc = inconv(4, 64)
+        self.down1 = down(64, 128)
+        self.down2 = down(128, 256)
+        self.down3 = down(256, 256)
+        self.linearlayer1 = nn.Linear(256,1)
+        self.linearlayer2 = nn.Linear(64,1)
+        self.end = nn.Sigmoid()
         
     
 
 
 
     def forward(self, img):
-        validity = self.model(img)
+        img = self.inc(img)
+        img = self.down1(img)
+        img = self.down2(img)
+        img = self.down3(img)
+        img = img.view(-1,256)
+        img = self.linearlayer1(img)
+        img = img.view(-1,64)
+        img = self.linearlayer2(img)
+        validity = self.end(img)
+   
+        
         return validity
 
 

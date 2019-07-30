@@ -23,7 +23,7 @@ from loss    import loss_3d_crossentropy ,F1_Loss
 
 #set gpu
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
 train_path = '../vae/brats18_data/train_2/'
@@ -31,7 +31,7 @@ type1 = ['flair','t1','t1ce','t2']
 batch_size = 1
 workers = 2
 classes = 5
-x = 32 ; y = 32; z = 32
+x = 48 ; y = 48; z = 48
 
 train_set = tumor_dataset(path = train_path)
 train_loader = DataLoader(train_set, batch_size=batch_size,shuffle=False, num_workers=workers)
@@ -39,19 +39,16 @@ valid_set = tumor_dataset(path = train_path)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,shuffle=False, num_workers=workers)
 
 
-unet = unet_3d(4,classes,32,32,32)
-print(unet)
-unet.cuda()
-generator = Genernator()
-print(generator)
-generator.cuda()
-discriminator = Discriminator()
-print(discriminator)
-discriminator.cuda()
+net_G = Generator(4,classes,48,48,48)
+print(net_G)
+net_G.cuda()
 
-optimizer = torch.optim.Adam(unet.parameters(),lr=0.00001,betas=(0.5, 0.999))
-optimizerG = torch.optim.Adam(generator.parameters(), lr=0.00001, betas=(0.5, 0.999))
-optimizerD = torch.optim.Adam(discriminator.parameters(), lr=0.00001, betas=(0.5, 0.999))
+net_D = Discriminator()
+print(net_D)
+net_D.cuda()
+
+optimizerG = torch.optim.Adam(net_G.parameters(), lr=0.00001, betas=(0.5, 0.999))
+optimizerD = torch.optim.Adam(net_D.parameters(), lr=0.00001, betas=(0.5, 0.999))
 
 #criterion = nn.BCELoss()
 #criterion  = nn.MSELoss()
@@ -62,7 +59,7 @@ optimizerD = torch.optim.Adam(discriminator.parameters(), lr=0.00001, betas=(0.5
 #print('load epoch49')
 
 
-train(unet,generator,discriminator,optimizer,optimizerG,optimizerD, train_loader,'./savecheckpoint3/' , x,y,z,n_epochs = 100 , times = 4,start_epoch = 0 )
+train(net_G,net_D,optimizerG,optimizerD, train_loader,'./savecheckpoint3/' , x,y,z,n_epochs = 100 , times = 4,start_epoch = 0 )
 
 
 
