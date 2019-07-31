@@ -237,7 +237,7 @@ class Discriminator (nn.Module):
         self.down2 = down(128, 256)
         self.down3 = down(256, 256)
         self.linearlayer1 = nn.Linear(256,1)
-        self.linearlayer2 = nn.Linear(64,1)
+        self.linearlayer2 = nn.Linear(216,1)
         self.linearlayer3 = nn.Linear(8,1)
         self.end = nn.Sigmoid()
         
@@ -251,11 +251,15 @@ class Discriminator (nn.Module):
         img = self.down2(img)
         img = self.down3(img)
         img = img.view(-1,256)
+        #print(img.size())
         img = self.linearlayer1(img)
-        img = img.view(-1,64)
+        img = img.view(-1,216)
+        #print(img.size())
+        
         img = self.linearlayer2(img)
-        img = img.view(-1,8)
-        img = self.linearlayer3(img)
+        print(img.size())
+        #img = img.view(-1,8)
+        #img = self.linearlayer3(img)
         validity = self.end(img)
    
         

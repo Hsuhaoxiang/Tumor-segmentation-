@@ -23,7 +23,7 @@ from loss    import loss_3d_crossentropy ,F1_Loss
 
 #set gpu
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 train_path = '../vae/brats18_data/train_2/'
@@ -31,7 +31,7 @@ type1 = ['flair','t1','t1ce','t2']
 batch_size = 1
 workers = 2
 classes = 5
-x = 64 ; y = 64; z = 64
+x = 48 ; y = 48; z = 48
 
 train_set = tumor_dataset(path = train_path)
 train_loader = DataLoader(train_set, batch_size=batch_size,shuffle=False, num_workers=workers)
@@ -39,7 +39,7 @@ valid_set = tumor_dataset(path = train_path)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,shuffle=False, num_workers=workers)
 
 
-net_G = Generator(4,classes,64,64,64)
+net_G = Generator(4,classes,48,48,48)
 print(net_G)
 net_G.cuda()
 
