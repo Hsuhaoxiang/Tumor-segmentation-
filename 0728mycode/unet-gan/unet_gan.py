@@ -150,9 +150,13 @@ class Generator (nn.Module):
     def forward(self, x):
         #encoder
         x1 = self.inc(x)
+        #print("x1 size is",x1.size())
         x2 = self.down1(x1)
+        #print("x2 size is",x2.size())
         x3 = self.down2(x2)
+        #print("x3 size is",x3.size())
         x4 = self.down3(x3)
+        #print("x4 size is",x4.size())
         #decoder segment
         x = self.up1(x4, x3)
         x = self.up2(x, x2)
@@ -167,8 +171,9 @@ class Generator (nn.Module):
         #sigma = torch.exp(log_sigma)
         #std_z = torch.from_numpy(np.random.normal(0, 1, size=sigma.size())).float().cuda()
         #z =  mu + sigma * std_z # Reparameterization trick
+        x4=x4.view(-1,128)
         rec_img = self.encoder(x4)
-        #rec_img = rec_img.view(-1,1,8,8,8)
+        rec_img = rec_img.view(-1,1,8,8,8)
         rec_img = self.up(rec_img)
        
         return recimg, x
@@ -233,6 +238,7 @@ class Discriminator (nn.Module):
         self.down3 = down(256, 256)
         self.linearlayer1 = nn.Linear(256,1)
         self.linearlayer2 = nn.Linear(64,1)
+        self.linearlayer3 = nn.Linear(8,1)
         self.end = nn.Sigmoid()
         
     
@@ -248,6 +254,8 @@ class Discriminator (nn.Module):
         img = self.linearlayer1(img)
         img = img.view(-1,64)
         img = self.linearlayer2(img)
+        img = img.view(-1,8)
+        img = self.linearlayer3(img)
         validity = self.end(img)
    
         

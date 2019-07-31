@@ -12,7 +12,7 @@ real_label = 1
 fake_label = 0
 def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs = 100 , times = 4 ,start_epoch = 0 ):
     print("available gup number:",torch.cuda.device_count())
-    
+    device = torch.device("cuda")
     best_loss = np.inf
     G.train()
     D.train()
@@ -49,13 +49,16 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 ###########################
                 # train with real
                 D.zero_grad()
-                label = torch.full((1,), real_label, device=device)
-                label.cuda()
+                label = torch.full((1,1), real_label, device=device)
+                
                 
                 
                 
                 output = D(feat_cut)
+                print(output.size())
+                print(label.size())
                 errD_real = criterion1(output, label)
+                print("errD: ",errD_real)
                 errD_real.backward()
                 D_x = output.mean().item()
 
@@ -63,8 +66,9 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 
                 fake ,pred= G(feat_cut)
                 label = torch.full((1,), fake_label, device=device)
-                label.cuda()
+                
                 output = D(fake.detach())
+                output = output.torch.squeeze
                 errD_fake = criterion1(output, label)
                 errD_fake.backward()
                 D_G_z1 = output.mean().item()
@@ -78,7 +82,7 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 ###########################
                 G.zero_grad()
                 label = torch.full((1,), real_label, device=device)  # fake labels are real for generator cost
-                label.cuda()
+                
 
 
                 

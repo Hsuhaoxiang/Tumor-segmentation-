@@ -17,7 +17,7 @@ import torchvision.transforms as transforms
 from dataset import tumor_dataset
 from train   import *
 
-#from models  import UNet3d
+#from models  import unet_3d
 from unet_gan  import *
 from loss    import loss_3d_crossentropy ,F1_Loss
 
@@ -31,7 +31,7 @@ type1 = ['flair','t1','t1ce','t2']
 batch_size = 1
 workers = 2
 classes = 5
-x = 48 ; y = 48; z = 48
+x = 64 ; y = 64; z = 64
 
 train_set = tumor_dataset(path = train_path)
 train_loader = DataLoader(train_set, batch_size=batch_size,shuffle=False, num_workers=workers)
@@ -39,7 +39,7 @@ valid_set = tumor_dataset(path = train_path)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,shuffle=False, num_workers=workers)
 
 
-net_G = Generator(4,classes,48,48,48)
+net_G = Generator(4,classes,64,64,64)
 print(net_G)
 net_G.cuda()
 
@@ -59,7 +59,7 @@ optimizerD = torch.optim.Adam(net_D.parameters(), lr=0.00001, betas=(0.5, 0.999)
 #print('load epoch49')
 
 
-train(net_G,net_D,optimizerG,optimizerD, train_loader,'./savecheckpoint3/' , x,y,z,n_epochs = 100 , times = 4,start_epoch = 0 )
+train(net_G,net_D,optimizerG,optimizerD, train_loader,'./savecheckpoint/' , x,y,z,n_epochs = 100 , times = 4,start_epoch = 0 )
 
 
 
