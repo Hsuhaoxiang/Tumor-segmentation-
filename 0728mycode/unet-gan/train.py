@@ -50,6 +50,7 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 ###########################
                 # train with real
                 D.zero_grad()
+                G.zero_grad()
                 label = torch.full((1,1), real_label)
                 label=label.cuda()
                 
@@ -71,7 +72,7 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 label=label.cuda()
                 
                 output = D(fake.detach())
-                output = output.torch.squeeze
+                output = output.squeeze()
                 errD_fake = criterion1(output, label)
                 errD_fake.backward()
                 D_G_z1 = output.mean().item()
@@ -83,7 +84,7 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 ############################
                 # (1) Update G network: maximize log(D(G(z)))
                 ###########################
-                G.zero_grad()
+                
                 label = torch.full((1,), real_label)  # fake labels are real for generator cost
                 label=label.cuda()
                 
@@ -104,7 +105,7 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
 
 
 
-                errG = criterion(output, label)
+                errG = criterion1(output, label)
                 Gnet_loss=errG+loss
                 Gnet_loss.backward()
                 G_loss+=errG

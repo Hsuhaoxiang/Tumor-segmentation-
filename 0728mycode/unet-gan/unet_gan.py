@@ -105,7 +105,7 @@ class Generator (nn.Module):
         self.up3 = up(128, 64)
         self.outc = outconv(64, n_classes)
         
-        self.flattenlayer = Flatten()
+        #self.flattenlayer = Flatten()
         """
         self.vae = nn.Sequential (
                     nn.Linear(x*y*z//2 , 1024),
@@ -113,42 +113,46 @@ class Generator (nn.Module):
         )
         self._enc_mu = torch.nn.Linear(1024, 128)
         self._enc_log_sigma = torch.nn.Linear(1024, 128)
-        """
+        
         self.encoder = nn.Sequential(
                     nn.Linear(128 , 512),
                     nn.ReLU(),
                     nn.Linear(512 , 8*8*8),
                     nn.ReLU()
         )
+        """
 
         self.up = nn.Sequential(
                     nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
-                    nn.Conv3d(1, 64, 3, padding=1),
-                    nn.BatchNorm3d(64),
+                    nn.Conv3d(256, 128, 3, padding=1),
+                    nn.BatchNorm3d(128),
                     nn.ReLU(inplace=True),
-                    nn.Conv3d(64, 64, 3, padding=1),
+                    nn.Conv3d(128, 64, 3, padding=1),
                     nn.BatchNorm3d(64),
                     nn.ReLU(inplace=True),
                     nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
-                    nn.Conv3d(64, 32, 3, padding=1),
-                    nn.BatchNorm3d(32),
+                    nn.Conv3d(64, 64, 3, padding=1),
+                    nn.BatchNorm3d(64),
                     nn.ReLU(inplace=True),
-                    nn.Conv3d(32, 32, 3, padding=1),
+                    nn.Conv3d(64, 32, 3, padding=1),
                     nn.BatchNorm3d(32),
                     nn.ReLU(inplace=True),
                     nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
                     nn.Conv3d(32, 16, 3, padding=1),
                     nn.BatchNorm3d(16),
                     nn.ReLU(inplace=True),
-                    nn.Conv3d(16, 16, 3, padding=1),
-                    nn.BatchNorm3d(16),
-                    nn.ReLU(inplace=True),
                     nn.Conv3d(16, 4, 3, padding=1),
+                    nn.BatchNorm3d(4),
                     nn.ReLU(inplace=True),
+                    
+                    
+
+                    
         )
 
     def forward(self, x):
         #encoder
+        #print("input",x.size())
         x1 = self.inc(x)
         #print("x1 size is",x1.size())
         x2 = self.down1(x1)
@@ -171,11 +175,9 @@ class Generator (nn.Module):
         #sigma = torch.exp(log_sigma)
         #std_z = torch.from_numpy(np.random.normal(0, 1, size=sigma.size())).float().cuda()
         #z =  mu + sigma * std_z # Reparameterization trick
-        x4=x4.view(-1,128)
-        rec_img = self.encoder(x4)
-        rec_img = rec_img.view(-1,1,8,8,8)
-        rec_img = self.up(rec_img)
-       
+        #print("x4",x4.size())
+        recimg=self.up(x4)
+        #print("recimg",recimg.size())
         return recimg, x
 
 """
@@ -255,9 +257,8 @@ class Discriminator (nn.Module):
         img = self.linearlayer1(img)
         img = img.view(-1,216)
         #print(img.size())
-        
         img = self.linearlayer2(img)
-        print(img.size())
+        #print(img.size())
         #img = img.view(-1,8)
         #img = self.linearlayer3(img)
         validity = self.end(img)
