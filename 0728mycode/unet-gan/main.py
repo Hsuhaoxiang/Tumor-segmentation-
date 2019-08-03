@@ -31,14 +31,14 @@ type1 = ['flair','t1','t1ce','t2']
 batch_size = 1
 workers = 2
 classes = 5
-x = 64 ; y = 64; z = 64
+x = 104 ; y = 104; z = 104
 train_set = tumor_dataset(path = train_path)
 train_loader = DataLoader(train_set, batch_size=batch_size,shuffle=False, num_workers=workers)
 valid_set = tumor_dataset(path = train_path)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,shuffle=False, num_workers=workers)
 
 print("size:(%d,%d,%d)"%(x,y,z))
-net_G = Generator(4,classes,64,64,64)
+net_G = Generator(4,classes,104,104,104)
 print(net_G)
 net_G=net_G.cuda()
 
