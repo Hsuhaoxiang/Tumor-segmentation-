@@ -114,11 +114,11 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
         print("[%d/%d],unet_loss : %.4f  D_loss :%.4f G_loss: %.4f"%(epoch+1,n_epochs,n_loss,D_loss,G_loss))
         # if(n_loss <best_loss):
             # best_loss = n_loss
-        save_checkpoint('G_net%s_epoch%d.pth'%(checkpoint_path,epoch+1) ,G ,optimizerG )
-        save_checkpoint('D_net%s_epoch%d.pth'%(checkpoint_path,epoch+1) ,D ,optimizerD )
+        save_checkpoint('%sG_net_epoch%d.pth'%(checkpoint_path,epoch+1) ,G ,optimizerG )
+        save_checkpoint('%sD_net_epoch%d.pth'%(checkpoint_path,epoch+1) ,D ,optimizerD )
             # print("save best at epoch:" ,epoch+1)
-    save_checkpoint('G_netfinal_%s.pth'%checkpoint_path ,G ,optimizerG)
-    save_checkpoint('D_netfinal_%s.pth'%checkpoint_path ,D ,optimizerD )
+    save_checkpoint('%sG_netfinal_.pth'%checkpoint_path ,G ,optimizerG)
+    save_checkpoint('%sD_netfinal_.pth'%checkpoint_path ,D ,optimizerD )
 
 
 
