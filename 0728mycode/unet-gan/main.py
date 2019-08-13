@@ -26,7 +26,7 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 
-train_path = '../vae/brats18_data/train_2/'
+train_path = '../../vae/brats18_data/train_2/'
 type1 = ['flair','t1','t1ce','t2']
 batch_size = 1
 workers = 2
@@ -54,7 +54,8 @@ optimizerD = torch.optim.Adam(net_D.parameters(), lr=0.00001, betas=(0.5, 0.999)
 #criterion2 = loss_3d_crossentropy(classes,x,y,z)
 
 
-#load_checkpoint('./savecheckpoint3/_epoch76.pth',model,optimizer)
+load_checkpoint('./D_net_epoch36.pth',net_D,optimizerD)
+load_checkpoint('./G_net_epoch36.pth',net_G,optimizerG)
 #print('load epoch49')
 
 

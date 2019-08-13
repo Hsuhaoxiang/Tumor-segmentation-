@@ -87,19 +87,10 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 
                 label = torch.full((1,), real_label)  # fake labels are real for generator cost
                 label=label.cuda()
-                
-
-
-                
+                               
                 output = D(fake)
 
-
-
-
-
-
-
-                           
+                      
                 loss = criterion3(pred.double(),gt_cut).float()
                 n_loss+=loss.item()  
 
@@ -120,7 +111,7 @@ def train(G,D,optimizerG ,optimizerD, dataloader, checkpoint_path,x,y,z,n_epochs
                 """
                 if i==1 and idx==1:
                     print("1 1save")
-                    torch.save(rec,'reconstruct.pt')
+                    torch.save(fake,'fake.pt')
                     torch.save(feat_cut,'feat_cut.pt')
                     torch.save(pred,'pred.pt')
                     torch.save(gt_cut,'ground_true.pt')

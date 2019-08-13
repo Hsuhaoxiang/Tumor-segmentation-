@@ -106,22 +106,6 @@ class Generator (nn.Module):
         self.outc = outconv(64, n_classes)
         
         #self.flattenlayer = Flatten()
-        """
-        self.vae = nn.Sequential (
-                    nn.Linear(x*y*z//2 , 1024),
-                    nn.ReLU()
-        )
-        self._enc_mu = torch.nn.Linear(1024, 128)
-        self._enc_log_sigma = torch.nn.Linear(1024, 128)
-        
-        self.encoder = nn.Sequential(
-                    nn.Linear(128 , 512),
-                    nn.ReLU(),
-                    nn.Linear(512 , 8*8*8),
-                    nn.ReLU()
-        )
-        """
-
         self.up = nn.Sequential(
                     nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
                     nn.Conv3d(256, 128, 3, padding=1),
@@ -180,48 +164,7 @@ class Generator (nn.Module):
         #print("recimg",recimg.size())
         return recimg, x
 
-"""
-class Genernator (nn.Module):
-    def __init__(self):
-        super(Genernator,self).__init__() 
-        self.encoder = nn.Sequential(
-                    nn.Linear(128 , 512),
-                    nn.ReLU(),
-                    nn.Linear(512 , 8*8*8),
-                    nn.ReLU()
-        )
-        self.up = nn.Sequential(
-                    nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
-                    nn.Conv3d(1, 64, 3, padding=1),
-                    nn.BatchNorm3d(64),
-                    nn.ReLU(inplace=True),
-                    nn.Conv3d(64, 64, 3, padding=1),
-                    nn.BatchNorm3d(64),
-                    nn.ReLU(inplace=True),
-                    nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
-                    nn.Conv3d(64, 32, 3, padding=1),
-                    nn.BatchNorm3d(32),
-                    nn.ReLU(inplace=True),
-                    nn.Conv3d(32, 32, 3, padding=1),
-                    nn.BatchNorm3d(32),
-                    nn.ReLU(inplace=True),
-                    nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True),
-                    nn.Conv3d(32, 16, 3, padding=1),
-                    nn.BatchNorm3d(16),
-                    nn.ReLU(inplace=True),
-                    nn.Conv3d(16, 16, 3, padding=1),
-                    nn.BatchNorm3d(16),
-                    nn.ReLU(inplace=True),
-                    nn.Conv3d(16, 4, 3, padding=1),
-                    nn.ReLU(inplace=True),
-        )
-    def __forward__(self,x):
 
-        rec_img = self.encoder(x)
-        rec_img = rec_img.view(-1,1,8,8,8)
-        rec_img = self.up(rec_img)
-        return rec_img
-"""
 class Discriminator (nn.Module):
     def __init__(self):
         super(Discriminator,self).__init__()

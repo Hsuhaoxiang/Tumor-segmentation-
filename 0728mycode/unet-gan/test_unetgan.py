@@ -16,10 +16,10 @@ import torchvision.transforms as transforms
 #import python file
 from dataset import tumor_dataset
 from train   import *
-from models  import UNet3d_vae
+from unet_gan  import *
 from loss    import loss_3d_crossentropy ,loss_3d_f1_score
 
-train_path = '../../vae/brats18_data/train_2/'
+train_path = '../vae/brats18_data/train_2/'
 type1 = ['flair','t1','t1ce','t2']
 
 valid_index = np.load('valid.npy')
@@ -29,7 +29,7 @@ print(valid_index)
 batch_size = 1
 workers = 2
 
-valid_set = tumor_dataset(path = train_path,out_index=valid_index)
+valid_set = tumor_dataset(path = train_path)
 valid_loader = DataLoader(valid_set, batch_size=batch_size,shuffle=False, num_workers=workers)
 X = 240
 Y = 240
@@ -37,6 +37,7 @@ Z = 155
 x = 104
 y = 104
 z = 104
+classes=5
 model = Generator(4,classes,104,104,104)
 print(model)
 model.cuda()
@@ -86,7 +87,7 @@ def test_unetgan (model , dataloader ,X,Y,Z, x, y ,z) :
                             cut_z1 = tp_z1-z1 
                         feat_cut = feat[:,:,x1:x2,y1:y2,z1:z2]
                         gt_cut = gt[:,x1:x2,y1:y2,z1:z2]
-                        _,pred,__,___ = model(feat_cut)
+                        fake ,pred = model(feat_cut)
                         pred = torch.argmax(pred,1).cpu()
                         pred  = pred[:,cut_x1:,cut_y1:,cut_z1:]
                         gt_cut = gt_cut[:,cut_x1:,cut_y1:,cut_z1:]
@@ -111,6 +112,7 @@ for epoch in range (41,44) :
 # score , loss = test(model,valid_loader,criterion,120,120,152)
     checkpoint_path = './savecheckpoint_104/G_net_epoch%s.pth'%(epoch)
     load_checkpoint(checkpoint_path,model,optimizer)
+    print("load_%sepoch"%epoch)
     score = test_unetgan(model,valid_loader,X,Y,Z,x,y,z)
     print('[--%s--score:%.4f,loss:%.4f'%(checkpoint_path,score,loss))
     text_file = open(txt_path, "a")
